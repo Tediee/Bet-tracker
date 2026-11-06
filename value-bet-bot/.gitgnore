@@ -1,0 +1,7 @@
+.env
+__pycach__/
+*.pyc
+.venv/
+venv/
+bets.db
+
