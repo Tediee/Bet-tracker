@@ -2,6 +2,7 @@ import requests
 from pprint import pprint
 
 from market_mapper import classify_market
+print(classify_,market("Total"))
 
 
 def get_betwgb_event():
