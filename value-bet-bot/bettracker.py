@@ -2,26 +2,28 @@ from database import create_database, save_bet,show_bets
 from profit_calculator import   calculate_roi
 from pinnacle import get_Pinnacle_odds
 from database import search_value_bets
-
-
+from database import (save_value_opportunity,
+                      create_database,
+                      search_value_bets,
+                      save_value_opportunity,
+                      show_value_opportunities,
+                      bookmaker_statistics)
 
 create_database()
+
 
 def calculate_value(odds,fair_odds):
     return((odds / fair_odds) - 1) * 100
 
 
 while True:
-    print("1. Add bet")
-    print("2. View bets")
-    print("3. Search value bets ")
-    print("4. show ROI")
-    print("5. Exit")
     print("6. Live pinnacle odds")
     print("7. Save Pinnacle Alerts")
     print("8. Top pinnacle drops")
     print("9. biggest movers today")
     print("10. Value finder")
+    print("11. View Value Opportunities")
+    print("12. Bookmaker Statistics")
 
 
     choice = input("choose: ")
@@ -31,8 +33,9 @@ while True:
     if choice == "1":
        match = input("Match: ")
        odds = float(input("odds: "))
-       result = input("Result (won/lost): ").upper()
        fair_odds = float(input("Fair odds: "))
+
+       result = "PENDING"
 
        value = calculate_value(odds, fair_odds)
 
@@ -181,45 +184,89 @@ while True:
                  print(f"movement:{change:.2f}%")
                  print("----------------")
     elif choice == "10":
-
         try:
+            print("\nVALUE FINDER\n")
+            match = input("Match: ")
+            print("\nSelect Market Type")
+            print("1. Soccer Moneyline")
+            print("2. Soccer Totals")
+            print("3. Soccer Spread")
+            print("4. Basketball Moneyline")
+            print("5.Basketball Totals")
+            print("6. Basketball Spreads")
 
-             print("\nVALUE FINDER\n")
+            market_choice = input("Choice: ")
 
-             match = input("Match: ")
+            if market_choice == "1":
+                market_type = "Soccer Moneyline"
 
-             pinnacle_odds = float(
-             input("Pinnacle Odds: ")
-             )
-             bookmaker = input(
-             "Bookmaker (Betwgb/Betxchange): "   )
+            elif market_choice == "2":
+                market_type = "Soccer Totals"
 
-             bookmaker_odds = float(
-              input("Bookmaker odds: ")
-             )
+            elif market_choice == "3":
+                market_type = "Soccer Spreads"
 
-             value_edge = ((bookmaker_odds / pinnacle_odds) - 1
-                      ) * 100
+            elif market_choice == "4":
+                market_type = "Basketball Moneyline"
 
-             print("\n------------")
-             print(f"Match: {match}")
-             print(f"Pinnacle: {pinnacle_odds}")
-             print(f"{bookmaker}: {bookmaker_odds}")
-             print(f"Edge: {value_edge:.2f}%")
-             print("DEBUG")
-             print("Pinnacle =", pinnacle_odds)
-             print("Bookmaker Odds =", bookmaker_odds)
-             print("Edge Raw =", value_edge)
-             print("----------------")
- 
-             if value_edge >= 5:
-                 print("🚨 VALUE FOUND")
-             else:
-                 print("No value found.")
+            elif market_choice == "5":
+                market_type = "Basketball Totals"
 
-        except ValueError:
+            elif market_choice == "6":
+                market_type = "Basketball Spreads"
 
-             print("enter valid odds")
+            else:
+                print("invalid market.")
+            pinnacle_odds = float(input("Pinnacle Odds: "))
+
+            print("\n1. BETWGB")
+            print("2. BetXchange")
+            bookie_choice = input("Choose bookmaker: ")
+
+            if bookie_choice == "1":
+                bookmaker = "BETWGB"
+            elif bookie_choice == "2":
+                bookmaker = "BetXchange"
+            else:
+                print("Invalid bookmaker choice.")
+                continue
+        
+            bookmaker_odds = float(input("Bookmaker Odds: "))
             
+            value_edge = ((bookmaker_odds / pinnacle_odds) - 1) * 100
 
-        ""
+            print("\n------------")
+            print(f"Match: {match}")
+            print(f"Pinnacle:{pinnacle_odds}")
+            print(f"{bookmaker} : {bookmaker_odds}")
+            print(f"Edge: {value_edge:.2f}%")
+            print("----------------")
+
+            if value_edge >= 5:
+                print("🚨 VALUE FOUND")
+             
+                save_value_opportunity(
+                    match,
+                    market_type,
+                    bookmaker,
+                    pinnacle_odds,
+                    bookmaker_odds,
+                    value_edge,
+                )
+                print("Value Saved.")
+            else:
+                print("No value found.")
+        except Exception as e:
+            print(f"ERROR: {e}")
+            print("enter valid odds")
+
+    elif choice == "11":
+
+        show_value_opportunities()
+        
+
+
+    elif choice == "12":
+
+        bookmaker_statistics()
+""
