@@ -1,4 +1,5 @@
 import streamlit as st
+st.title("")
 import sqlite3
 import pandas as pd
 import plotly.express as px
@@ -30,6 +31,12 @@ if not df.empty:
         "Best Edge",
         f"{df['edge'].max():.2f}%"
     )
+
+    st.subheader("🏆Top 10 Value Opportunities")
+
+    top_df = (df.sort_values("edge",ascending=False).head(10))
+
+    st.dataframe(top_df, use_container_width=True)
 
     bookmaker_counts = (
         df["bookmaker"]
@@ -65,6 +72,12 @@ if not df.empty:
         "Market",
         "Count"
     ]
+
+    st.subheader("📊 Bookmaker Performance")
+
+    leaderboard = (df.groupby("bookmaker").agg({"edge": ["count", "mean", "max"]}))
+
+    st.dataframe(leaderboard,use_container_width=True)
 
     fig = px.pie(
         market_counts,

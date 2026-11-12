@@ -29,4 +29,9 @@ else:
     st.info(
         "No opportunities saved yet."
     )
-    
+selected_bookmaker = st.selectbox("Bookmaker",["All",
+                                                "BETWGB",
+                                                "BetXchange"])
+if selected_bookmaker != "All":
+
+    df = df[df["bookmaker"]== selected_bookmaker]
