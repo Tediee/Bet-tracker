@@ -1,12 +1,12 @@
-from betwgb import get_betwgb_event
-data = get_betwgb_event()
-print("Bets:", len(data["bets"]))
-print("Groups:", len(data["groups"]))
+from notifications import send_discord_alert
 
-if len(data["bets"]) > 0:
-    print(data["bets"][0])
+send_discord_alert(
+"""
+🚨 TEST ALERT
 
-if len(data["groups"]) > 0:
-    print(data["groups"][0])
-    
-    
+BET_NANRI is online.
+
+If you see this message,
+Discord notifications work.
+"""
+)
