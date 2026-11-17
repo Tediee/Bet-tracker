@@ -80,10 +80,9 @@ while True:
         print(f"\nFound {len(games)} games")
 
         for game in games:
-            print(game)
-            break
+            
 
-            moving = float(
+            movement = float(
                 game.get(
                     "percentageChange",
                     0
@@ -93,12 +92,12 @@ while True:
             print(
                 f"{game.get('home')} vs "
                 f"{game.get('away')} | "
-                f"Movement: {moving:.2f}%"
+                f"Movement: {movement:.2f}%"
             )
 
             # Alert filter
 
-            if moving >= 10:
+            if movement >= 10:
 
                 match = (
                     f"{game.get('home', 'N/A')} vs "
@@ -107,13 +106,17 @@ while True:
 
                 league = game.get("leagueName","Unknown")
 
-                market_type = game.get("marketType","Unknown")
+                line_type = game.get("lineType","Unknown")
+                
+                outcome = game.get("outcome", "Unknown")
 
-                pinnacle_odds = float(game.get("odds", 0))
+                market_type = (f"{line_type} ({outcome})")
+
+                pinnacle_odds = float(game.get("changeTo", 0))
 
 
                 saved = save_alert(match,league,
-                    moving,market_type,pinnacle_odds)
+                    movement,market_type,pinnacle_odds)
 
                 if saved:
 
@@ -123,13 +126,13 @@ while True:
                        f"""
  @everyone
  .....................................         
-🚨 PINNACLE ALERT
+🚨 **PINNACLE ALERT**
 
 ⚽ Match: {match}
 
 🏆 League: {league}
 
-📈 Movement: {moving:.2f}%
+📈 Movement: {movement:.2f}%
 
 🕰️ Time Sensitive
 ......................................
@@ -137,9 +140,8 @@ while True:
                     )
 
                     print(
-                        f"🚨 NEW ALERT: "
-                        f"{match} "
-                        f"({moving:.2f}%)"
+                        f"🚨 NEW ALERT: {match}"
+                        
                     )
 
     #wait 60 secs
