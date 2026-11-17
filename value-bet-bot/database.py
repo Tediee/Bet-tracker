@@ -15,14 +15,14 @@ def create_database():
     # Value Opportunities
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS pinnacle_alerts(
+    CREATE TABLE IF NOT EXISTS value_opportunities(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         match TEXT,
-        league TEXT,
-        movement REAL,
         market_type TEXT,
+        bookmaker TEXT,
         pinnacle_odds REAL,
-        status TEXT DEFAULT 'NEW',
+        bookmaker_odds REAL,
+        edge REAL,
         date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -35,6 +35,9 @@ def create_database():
         match TEXT,
         league TEXT,
         movement REAL,
+        market_type TEXT,
+        pinnacle_odds REAL,
+        status TEXT DEFAULT 'NEW',
         date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
