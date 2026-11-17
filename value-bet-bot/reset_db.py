@@ -2,4 +2,4 @@ from database import create_database
 
 create_database()
 
-print("Database created succesfully")
+print("Database recreated")
