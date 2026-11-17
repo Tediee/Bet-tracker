@@ -18,7 +18,11 @@ DB_PATH = os.path.join(
 create_database()
 
 
-def save_alert(match, league, movement):
+def save_alert(match,
+                league,
+                  movement,
+                   market_type,
+                    pinnacle_odds,):
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -43,13 +47,19 @@ def save_alert(match, league, movement):
     INSERT INTO pinnacle_alerts(
         match,
         league,
-        movement
+        movement,
+        market_type,
+        pinnacle_odds,
+        status
     )
-    VALUES (?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?)
     """, (
         match,
         league,
-        movement
+        movement,
+        market_type,
+        pinnacle_odds,
+        "NEW"
     ))
 
     conn.commit()
@@ -70,6 +80,8 @@ while True:
         print(f"\nFound {len(games)} games")
 
         for game in games:
+            print(game)
+            break
 
             moving = float(
                 game.get(
@@ -93,21 +105,24 @@ while True:
                     f"{game.get('away', 'N/A')}"
                 )
 
-                league = game.get(
-                    "leagueName",
-                    "Unknown"
-                )
+                league = game.get("leagueName","Unknown")
 
-                saved = save_alert(
-                    match,
-                    league,
-                    moving
-                )
+                market_type = game.get("marketType","Unknown")
+
+                pinnacle_odds = float(game.get("odds", 0))
+
+
+                saved = save_alert(match,league,
+                    moving,market_type,pinnacle_odds)
 
                 if saved:
 
                     send_discord_alert(
-                        f"""
+ 
+ 
+                       f"""
+ @everyone
+ .....................................         
 🚨 PINNACLE ALERT
 
 ⚽ Match: {match}
@@ -117,6 +132,7 @@ while True:
 📈 Movement: {moving:.2f}%
 
 🕰️ Time Sensitive
+......................................
 """
                     )
 
@@ -128,7 +144,7 @@ while True:
 
     #wait 60 secs
 
-        time.sleeep(60)
+        time.sleep(60)
     except Exception as e:
 
         print(f"❌ Error: {e}")

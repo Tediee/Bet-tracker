@@ -1,20 +1,35 @@
+# upgrade_alerts_table.py
+
 import sqlite3
-import os
 
-DB_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "bets.db"
-)
-
-conn = sqlite3.connect(DB_PATH)
+conn = sqlite3.connect("bets.db")
 cursor = conn.cursor()
 
-cursor.execute("""
-SELECT name
-FROM sqlite_master
-WHERE type='table'
-""")
+try:
+    cursor.execute("""
+    ALTER TABLE pinnacle_alerts
+    ADD COLUMN market_type TEXT
+    """)
+except:
+    pass
 
-print(cursor.fetchall())
+try:
+    cursor.execute("""
+    ALTER TABLE pinnacle_alerts
+    ADD COLUMN pinnacle_odds REAL
+    """)
+except:
+    pass
 
+try:
+    cursor.execute("""
+    ALTER TABLE pinnacle_alerts
+    ADD COLUMN status TEXT DEFAULT 'NEW'
+    """)
+except:
+    pass
+
+conn.commit()
 conn.close()
+
+print("Upgrade complete")

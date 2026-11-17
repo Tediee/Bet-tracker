@@ -90,3 +90,37 @@ def show_pinnacle_alerts():
         print("----------------")
 
     conn.close()
+
+def save_value_opportunity(
+    match,
+    market_type,
+    bookmaker,
+    pinnacle_odds,
+    bookmaker_odds,
+    edge
+):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO value_opportunities(
+        match,
+        market_type,
+        bookmaker,
+        pinnacle_odds,
+        bookmaker_odds,
+        edge
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        match,
+        market_type,
+        bookmaker,
+        pinnacle_odds,
+        bookmaker_odds,
+        edge
+    ))
+
+    conn.commit()
+    conn.close()

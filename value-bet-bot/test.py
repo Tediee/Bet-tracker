@@ -2,11 +2,10 @@ from notifications import send_discord_alert
 
 send_discord_alert(
 """
+@everyone
+
 🚨 TEST ALERT
 
-BET_NANRI is online.
-
-If you see this message,
-Discord notifications work.
+Phone Notification Test
 """
 )
