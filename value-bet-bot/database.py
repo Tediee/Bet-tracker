@@ -94,6 +94,27 @@ def show_pinnacle_alerts():
 
     conn.close()
 
+def update_alert_status(
+    alert_id,
+    status
+):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE pinnacle_alerts
+    SET status = ?
+    WHERE id = ?
+    """,
+    (
+        status,
+        alert_id
+    ))
+
+    conn.commit()
+    conn.close()
+
 def save_value_opportunity(
     match,
     market_type,

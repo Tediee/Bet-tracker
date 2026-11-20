@@ -3,6 +3,8 @@ import sqlite3
 import pandas as pd
 import os
 
+from datetime import datetime
+
 from database import (
     save_value_opportunity,
     update_alert_status
@@ -14,54 +16,211 @@ DB_PATH = os.path.join(
     "bets.db"
 )
 
-st.title(
-    "🎯 Alert Review Queue"
+st.set_page_config(
+    page_title="Alert Review Queue",
+    page_icon="🎯",
+    layout="wide"
 )
 
-conn = sqlite3.connect(DB_PATH)
+st.title("🎯 Alert Review Queue")
 
-df = pd.read_sql_query("""
-SELECT *
-FROM pinnacle_alerts
-WHERE status='NEW'
-ORDER BY movement DESC
-""", conn)
+if st.button("🔄 Refresh"):
+    st.rerun()
 
-conn.close()
+# ----------------------------
+# Load Alerts
+# ----------------------------
 
-if df.empty:
+try:
 
-    st.success(
-        "✅ No alerts waiting."
+    conn = sqlite3.connect(DB_PATH)
+
+    df = pd.read_sql_query("""
+    SELECT *
+    FROM pinnacle_alerts
+    WHERE status = 'NEW'
+    ORDER BY date DESC
+    """, conn)
+
+    conn.close()
+
+except Exception as e:
+
+    st.error(
+        f"Database Error: {e}"
     )
 
     st.stop()
 
-st.metric(
+if df.empty:
+
+    st.success(
+        "✅ No alerts awaiting review."
+    )
+
+    st.stop()
+
+# ----------------------------
+# Most Recent Alert
+# ----------------------------
+
+st.subheader("🆕 Most Recent Alert")
+
+latest = (
+    df.sort_values(
+        "date",
+        ascending=False
+    )
+    .head(1)
+    .iloc[0]
+)
+
+latest_time = pd.to_datetime(
+    latest["date"]
+)
+
+minutes_old = int(
+    (
+        datetime.now() - latest_time
+    ).total_seconds()
+    / 60
+)
+
+st.success(
+    f"""
+⚽ {latest['match']}
+
+🏆 {latest['league']}
+
+📊 {latest['market_type']}
+
+📈 Pinnacle: {latest['pinnacle_odds']}
+
+🔥 Movement: {latest['movement']:.2f}%
+
+⏰ Received: {latest['date']}
+
+🕒 Age: {minutes_old} mins ago
+"""
+)
+
+st.divider()
+
+# ----------------------------
+# Top 3 Alerts
+# ----------------------------
+
+st.subheader("🔥 Top 3 Alerts Right Now")
+
+top_three = (
+    df.sort_values(
+        "movement",
+        ascending=False
+    )
+    .head(3)
+)
+
+for rank, (_, row) in enumerate(
+    top_three.iterrows(),
+    start=1
+):
+
+    st.info(
+        f"""
+#{rank}
+
+⚽ {row['match']}
+
+🏆 {row['league']}
+
+📊 {row['market_type']}
+
+📈 Pinnacle: {row['pinnacle_odds']}
+
+🔥 Movement: {row['movement']:.2f}%
+"""
+    )
+
+st.divider()
+
+# ----------------------------
+# Metrics
+# ----------------------------
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric(
     "🚨 New Alerts",
     len(df)
 )
 
-for _, row in df.iterrows():
+col2.metric(
+    "📈 Largest Move",
+    f"{df['movement'].max():.2f}%"
+)
+
+col3.metric(
+    "📊 Average Move",
+    f"{df['movement'].mean():.2f}%"
+)
+
+st.divider()
+
+# ----------------------------
+# Review Queue
+# ----------------------------
+
+st.subheader(
+    "📋 Alerts Awaiting Review"
+)
+
+review_df = (
+    df.sort_values(
+        "date",
+        ascending=False
+    )
+)
+
+for _, row in review_df.iterrows():
+
+    alert_time = pd.to_datetime(
+        row["date"]
+    )
+
+    minutes_old = int(
+        (
+            datetime.now()
+            - alert_time
+        ).total_seconds()
+        / 60
+    )
 
     with st.expander(
-        f"{row['match']} | "
-        f"{row['movement']:.2f}%"
+
+        f"""
+⚽ {row['match']}
+|
+🔥 {row['movement']:.2f}%
+|
+🕒 {minutes_old} min ago
+"""
+
     ):
 
         st.write(
-            f"🏆 League: "
-            f"{row['league']}"
+            f"🏆 League: {row['league']}"
         )
 
         st.write(
-            f"📊 Market: "
-            f"{row['market_type']}"
+            f"📊 Market: {row['market_type']}"
         )
 
         st.write(
-            f"📈 Pinnacle Odds: "
-            f"{row['pinnacle_odds']}"
+            f"📈 Pinnacle Odds: {row['pinnacle_odds']}"
+        )
+
+        st.write(
+            f"⏰ Received: {row['date']}"
         )
 
         bookmaker = st.selectbox(
@@ -70,20 +229,20 @@ for _, row in df.iterrows():
                 "BETWGB",
                 "BetXchange"
             ],
-            key=f"b_{row['id']}"
+            key=f"bookmaker_{row['id']}"
         )
 
         bookmaker_odds = st.number_input(
             "Bookmaker Odds",
             min_value=1.01,
             step=0.01,
-            key=f"o_{row['id']}"
+            key=f"odds_{row['id']}"
         )
 
         edge = (
             (
-                bookmaker_odds /
-                row["pinnacle_odds"]
+                bookmaker_odds
+                / row["pinnacle_odds"]
             ) - 1
         ) * 100
 
@@ -92,13 +251,13 @@ for _, row in df.iterrows():
             f"{edge:.2f}%"
         )
 
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
 
         with c1:
 
             if st.button(
                 "💰 Save Opportunity",
-                key=f"s_{row['id']}"
+                key=f"save_{row['id']}"
             ):
 
                 save_value_opportunity(
@@ -116,7 +275,7 @@ for _, row in df.iterrows():
                 )
 
                 st.success(
-                    "Saved"
+                    "Opportunity Saved"
                 )
 
                 st.rerun()
@@ -125,12 +284,26 @@ for _, row in df.iterrows():
 
             if st.button(
                 "❌ No Value",
-                key=f"n_{row['id']}"
+                key=f"novalue_{row['id']}"
             ):
 
                 update_alert_status(
                     row["id"],
                     "NO VALUE"
+                )
+
+                st.rerun()
+
+        with c3:
+
+            if st.button(
+                "✅ Reviewed",
+                key=f"reviewed_{row['id']}"
+            ):
+
+                update_alert_status(
+                    row["id"],
+                    "REVIEWED"
                 )
 
                 st.rerun()

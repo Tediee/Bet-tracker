@@ -97,7 +97,7 @@ while True:
 
             # Alert filter
 
-            if movement >= 10:
+            if movement >= 15:
 
                 match = (
                     f"{game.get('home', 'N/A')} vs "
